@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de LED - Banner de Texto</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .led-display {
+            background: #000;
+            border: 8px solid #333;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5),
+                        inset 0 0 20px rgba(255,255,255,0.05);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .led-matrix {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 30px);
+            gap: 5px;
+            padding: 20px;
+            min-height: 200px;
+            position: relative;
+        }
+
+        .led-dot {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            transition: all 0.1s ease;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .led-off {
+            background: radial-gradient(circle at 30% 30%, #333, #111);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.8);
+        }
+
+        .led-on {
+            box-shadow: 0 0 10px currentColor,
+                        0 0 20px currentColor,
+                        inset 0 2px 5px rgba(255,255,255,0.3);
+        }
+
+        .controls {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="color"],
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #4CAF50;
+            background: rgba(255,255,255,0.15);
+        }
+
+        input[type="color"] {
+            height: 50px;
+            cursor: pointer;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .button-group .btn {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+        }
+
+        .range-value {
+            display: inline-block;
+            margin-left: 10px;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔴 Painel de LED - Banner de Texto</h1>
+
+        <div class="led-display">
+            <div class="led-matrix" id="ledMatrix"></div>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="textInput">📝 Texto do Banner:</label>
+                <input type="text" id="textInput" placeholder="Digite seu texto aqui..." value="BEM-VINDO AO PAINEL DE LED!">
+            </div>
+
+            <div class="grid-3">
+                <div class="control-group">
+                    <label for="textColorPicker">📝 Cor do Texto:</label>
+                    <input type="color" id="textColorPicker" value="#00ff00">
+                </div>
+
+                <div class="control-group">
+                    <label for="bgColorPicker">💡 Cor de Fundo (LEDs):</label>
+                    <input type="color" id="bgColorPicker" value="#ff0000">
+                </div>
+
+                <div class="control-group">
+                    <label for="speedRange">⚡ Velocidade: <span class="range-value" id="speedValue">10</span></label>
+                    <input type="range" id="speedRange" min="0.1001" max="30" value="10" style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn" id="startBtn">▶️ Iniciar</button>
+                <button class="btn btn-stop" id="stopBtn">⏹️ Parar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ledMatrix = document.getElementById('ledMatrix');
+        const textInput = document.getElementById('textInput');
+        const textColorPicker = document.getElementById('textColorPicker');
+        const bgColorPicker = document.getElementById('bgColorPicker');
+        const speedRange = document.getElementById('speedRange');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const speedValue = document.getElementById('speedValue');
+
+        let cols = 0;
+        let rows = 8;
+        let leds = [];
+        let animationInterval = null;
+        let scrollPosition = 0;
+        let textPixels = [];
+
+        // Fonte de 5x7 pixels para cada caractere
+        const font = {
+            'A': [[0,1,1,1,0],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
+            'B': [[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0]],
+            'C': [[0,1,1,1,1],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[0,1,1,1,1]],
+            'D': [[1,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,0]],
+            'E': [[1,1,1,1,1],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,0],[1,1,1,1,1]],
+            'F': [[1,1,1,1,1],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0]],
+            'G': [[0,1,1,1,1],[1,0,0,0,0],[1,0,1,1,1],[1,0,0,0,1],[0,1,1,1,0]],
+            'H': [[1,0,0,0,1],[1,0,0,0,1],[1,1,1,1,1],[1,0,0,0,1],[1,0,0,0,1]],
+            'I': [[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[1,1,1,1,1]],
+            'J': [[0,0,0,0,1],[0,0,0,0,1],[0,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+            'K': [[1,0,0,0,1],[1,0,0,1,0],[1,1,1,0,0],[1,0,0,1,0],[1,0,0,0,1]],
+            'L': [[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,0,0,0,0],[1,1,1,1,1]],
+            'M': [[1,0,0,0,1],[1,1,0,1,1],[1,0,1,0,1],[1,0,0,0,1],[1,0,0,0,1]],
+            'N': [[1,0,0,0,1],[1,1,0,0,1],[1,0,1,0,1],[1,0,0,1,1],[1,0,0,0,1]],
+            'O': [[0,1,1,1,0],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+            'P': [[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,0,0],[1,0,0,0,0]],
+            'Q': [[0,1,1,1,0],[1,0,0,0,1],[1,0,1,0,1],[1,0,0,1,0],[0,1,1,0,1]],
+            'R': [[1,1,1,1,0],[1,0,0,0,1],[1,1,1,1,0],[1,0,0,1,0],[1,0,0,0,1]],
+            'S': [[0,1,1,1,1],[1,0,0,0,0],[0,1,1,1,0],[0,0,0,0,1],[1,1,1,1,0]],
+            'T': [[1,1,1,1,1],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
+            'U': [[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,1,1,0]],
+            'V': [[1,0,0,0,1],[1,0,0,0,1],[1,0,0,0,1],[0,1,0,1,0],[0,0,1,0,0]],
+            'W': [[1,0,0,0,1],[1,0,0,0,1],[1,0,1,0,1],[1,1,0,1,1],[1,0,0,0,1]],
+            'X': [[1,0,0,0,1],[0,1,0,1,0],[0,0,1,0,0],[0,1,0,1,0],[1,0,0,0,1]],
+            'Y': [[1,0,0,0,1],[0,1,0,1,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0]],
+            'Z': [[1,1,1,1,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0],[1,1,1,1,1]],
+            ' ': [[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0],[0,0,0,0,0]],
+            '!': [[0,0,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,0,0,0,0],[0,0,1,0,0]],
+            '-': [[0,0,0,0,0],[0,0,0,0,0],[1,1,1,1,1],[0,0,0,0,0],[0,0,0,0,0]],
+            '0': [[0,1,1,1,0],[1,0,0,1,1],[1,0,1,0,1],[1,1,0,0,1],[0,1,1,1,0]],
+            '1': [[0,0,1,0,0],[0,1,1,0,0],[0,0,1,0,0],[0,0,1,0,0],[0,1,1,1,0]],
+            '2': [[0,1,1,1,0],[1,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[1,1,1,1,1]],
+            '3': [[1,1,1,1,0],[0,0,0,0,1],[0,1,1,1,0],[0,0,0,0,1],[1,1,1,1,0]],
+            '4': [[1,0,0,1,0],[1,0,0,1,0],[1,1,1,1,1],[0,0,0,1,0],[0,0,0,1,0]],
+            '5': [[1,1,1,1,1],[1,0,0,0,0],[1,1,1,1,0],[0,0,0,0,1],[1,1,1,1,0]],
+            '6': [[0,1,1,1,0],[1,0,0,0,0],[1,1,1,1,0],[1,0,0,0,1],[0,1,1,1,0]],
+            '7': [[1,1,1,1,1],[0,0,0,0,1],[0,0,0,1,0],[0,0,1,0,0],[0,1,0,0,0]],
+            '8': [[0,1,1,1,0],[1,0,0,0,1],[0,1,1,1,0],[1,0,0,0,1],[0,1,1,1,0]],
+            '9': [[0,1,1,1,0],[1,0,0,0,1],[0,1,1,1,1],[0,0,0,0,1],[0,1,1,1,0]],
+        };
+
+        function createMatrix() {
+            const containerWidth = ledMatrix.offsetWidth;
+            cols = Math.floor(containerWidth / 35);
+            
+            ledMatrix.innerHTML = '';
+            ledMatrix.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+            
+            leds = [];
+            for (let row = 0; row < rows; row++) {
+                leds[row] = [];
+                for (let col = 0; col < cols; col++) {
+                    const led = document.createElement('div');
+                    led.className = 'led-dot led-off';
+                    ledMatrix.appendChild(led);
+                    leds[row][col] = led;
+                }
+            }
+        }
+
+        function textToPixels(text) {
+            const pixels = [];
+            const upperText = text.toUpperCase();
+            
+            for (let i = 0; i < upperText.length; i++) {
+                const char = upperText[i];
+                const charPixels = font[char] || font[' '];
+                
+                for (let col = 0; col < 5; col++) {
+                    const column = [];
+                    for (let row = 0; row < 5; row++) {
+                        column.push(charPixels[row][col]);
+                    }
+                    pixels.push(column);
+                }
+                pixels.push([0, 0, 0, 0, 0]); // Espaço entre letras
+            }
+            
+            return pixels;
+        }
+
+        function updateDisplay() {
+            const bgColor = bgColorPicker.value;
+            const textColor = textColorPicker.value;
+            
+            // Limpar todos os LEDs
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const led = leds[row][col];
+                    led.className = 'led-dot led-off';
+                    led.style.background = `radial-gradient(circle at 30% 30%, #333, #111)`;
+                }
+            }
+
+            // Desenhar o texto
+            const startRow = Math.floor((rows - 5) / 2);
+            
+            for (let col = 0; col < cols; col++) {
+                const textCol = (scrollPosition + col) % textPixels.length;
+                
+                for (let row = 0; row < 5; row++) {
+                    if (textPixels[textCol] && textPixels[textCol][row]) {
+                        const led = leds[startRow + row][col];
+                        led.className = 'led-dot led-on';
+                        led.style.color = textColor;
+                        led.style.background = `radial-gradient(circle at 30% 30%, ${textColor}, ${adjustColor(textColor, -50)})`;
+                    }
+                }
+            }
+
+            // Preencher LEDs de fundo
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < cols; col++) {
+                    const led = leds[row][col];
+                    if (led.className === 'led-dot led-off') {
+                        led.style.background = `radial-gradient(circle at 30% 30%, ${adjustColor(bgColor, -70)}, ${adjustColor(bgColor, -90)})`;
+                    }
+                }
+            }
+        }
+
+        function adjustColor(color, percent) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const r = Math.max(0, Math.min(255, ((num >> 16) + percent)));
+            const g = Math.max(0, Math.min(255, (((num >> 8) & 0x00FF) + percent)));
+            const b = Math.max(0, Math.min(255, ((num & 0x0000FF) + percent)));
+            return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+        }
+
+        function startAnimation() {
+            stopAnimation();
+            
+            const text = textInput.value || 'LED PANEL';
+            textPixels = textToPixels(text);
+            scrollPosition = 0;
+            
+            const speed = 100 - (speedRange.value * 4);
+            
+            animationInterval = setInterval(() => {
+                scrollPosition = (scrollPosition + 1) % textPixels.length;
+                updateDisplay();
+            }, speed);
+        }
+
+        function stopAnimation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+        }
+
+        speedRange.addEventListener('input', (e) => {
+            speedValue.textContent = e.target.value;
+            if (animationInterval) {
+                startAnimation();
+            }
+        });
+
+        textColorPicker.addEventListener('input', updateDisplay);
+        bgColorPicker.addEventListener('input', updateDisplay);
+
+        startBtn.addEventListener('click', startAnimation);
+        stopBtn.addEventListener('click', stopAnimation);
+
+        window.addEventListener('resize', () => {
+            createMatrix();
+            if (animationInterval) {
+                startAnimation();
+            }
+        });
+
+        createMatrix();
+        startAnimation();
+    </script>
+</body>
+</html>
